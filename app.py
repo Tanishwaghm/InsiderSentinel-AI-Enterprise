@@ -8,7 +8,37 @@ st.set_page_config(page_title="InsiderSentinel Enterprise", layout="wide")
 st.title("🛡 InsiderSentinel AI - Enterprise Edition")
 st.markdown("User Behavior Analytics & Insider Threat Detection System")
 
-model, scaler = joblib.load("models/trained_model.pkl")
+import os
+import numpy as np
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
+
+# ---- Safe Path Handling (Cloud Compatible) ----
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+MODEL_PATH = os.path.join(MODEL_DIR, "trained_model.pkl")
+
+# Create models folder if not exists
+if not os.path.exists(MODEL_DIR):
+    os.makedirs(MODEL_DIR)
+
+# ---- Load or Auto-Create Model ----
+if not os.path.exists(MODEL_PATH):
+    st.warning("Model not found. Creating new anomaly detection model...")
+
+    # Create synthetic enterprise log data
+    X_dummy = np.random.rand(1000, 7)
+
+    scaler = StandardScaler()
+    X_scaled_dummy = scaler.fit_transform(X_dummy)
+
+    model = IsolationForest(contamination=0.1)
+    model.fit(X_scaled_dummy)
+
+    joblib.dump((model, scaler), MODEL_PATH)
+
+else:
+    model, scaler = joblib.load(MODEL_PATH)
 
 uploaded_file = st.file_uploader("Upload Enterprise Log CSV")
 
